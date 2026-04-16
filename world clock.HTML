@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi Time Zone Digital Clock</title>
+  <style>
+    body {
+      background: #181a1b;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+    }
+    .clock-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    .clock {
+      min-width: 200px;
+      background: #232526;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      padding: 24px;
+      text-align: center;
+    }
+    .zone {
+      font-size: 1.1em;
+      color: #c7d0d5;
+      margin-bottom: 8px;
+    }
+    .time {
+      font-size: 2.3em;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    .date {
+      font-size: 1em;
+      color: #aab8be;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Digital Clock: Multi Time Zone</h1>
+  <div class="clock-container" id="clocks">
+    <!-- Clocks will be generated here -->
+  </div>
+
+  <script>
+    // List of time zones you want to display
+    const timeZones = [
+      { label: "Local Time", zone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      { label: "New York (USA)", zone: "America/New_York" },
+      { label: "London (UK)", zone: "Europe/London" },
+      { label: "Berlin (Germany)", zone: "Europe/Berlin" },
+      { label: "Beijing (China)", zone: "Asia/Shanghai" },
+      { label: "Sydney (Australia)", zone: "Australia/Sydney" },
+      // You can add more (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+    ];
+
+    // HTML container
+    const container = document.getElementById('clocks');
+
+    // Create clock elements
+    timeZones.forEach((tz, i) => {
+      const div = document.createElement('div');
+      div.className = 'clock';
+      div.innerHTML = `
+        <div class="zone">${tz.label}<br><span style="font-size:0.65em;opacity:0.75">${tz.zone}</span></div>
+        <div class="time" id="time-${i}"></div>
+        <div class="date" id="date-${i}"></div>
+      `;
+      container.appendChild(div);
+    });
+
+    // Update clocks
+    function updateClocks() {
+      timeZones.forEach((tz, i) => {
+        const now = new Date();
+        // Time string
+        const time = now.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+          timeZone: tz.zone
+        });
+        // Date string
+        const date = now.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          weekday: 'short',
+          timeZone: tz.zone
+        });
+        document.getElementById(`time-${i}`).textContent = time;
+        document.getElementById(`date-${i}`).textContent = date;
+      });
+    }
+
+    updateClocks();
+    setInterval(updateClocks, 1000); // Update every second
+  </script>
+</body>
+</html>
