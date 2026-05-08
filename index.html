@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每日感悟 - 心灵日记</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#a5b4fc',
+                        background: '#f3f4f6',
+                        card: '#ffffff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* 隐藏滚动条但保持功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden text-gray-800">
+
+    <!-- 头部导航 -->
+    <header class="bg-white shadow-sm z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-primary text-xl"></i>
+            <h1 class="text-lg font-bold text-gray-800">每日感悟</h1>
+        </div>
+        <button onclick="app.toggleSettings()" class="p-2 rounded-full hover:bg-gray-100 transition">
+            <i class="fa-solid fa-gear text-gray-500"></i>
+        </button>
+    </header>
+
+    <!-- 主内容区域：日记列表 -->
+    <main id="diary-list-container" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+        <!-- 空状态提示 -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center h-64 text-gray-400">
+            <i class="fa-regular fa-pen-to-square text-4xl mb-3"></i>
+            <p>还没有记录哦，开始写下今天的感悟吧</p>
+        </div>
+        <!-- 日记卡片将在这里动态生成 -->
+    </main>
+
+    <!-- 底部悬浮添加按钮 -->
+    <div class="fixed bottom-6 right-6 z-20">
+        <button onclick="app.openEditor()" class="bg-primary hover:bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform transform hover:scale-110 active:scale-95">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- 编辑/新建日记模态框 -->
+    <div id="editor-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end sm:items-center justify-center transition-opacity duration-300">
+        <div class="bg-white w-full sm:w-96 sm:rounded-xl rounded-t-2xl h-[85vh] sm:h-[600px] flex flex-col shadow-2xl slide-up relative">
+            <!-- 模态框头部 -->
+            <div class="px-4 py-3 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <button onclick="app.closeEditor()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <span id="modal-title" class="font-semibold text-gray-700">新日记</span>
+                <button onclick="app.saveDiary()" class="text-primary font-bold hover:text-indigo-700">
+                    保存
+                </button>
+            </div>
+            
+            <!-- 编辑区域 -->
+            <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
+                <!-- 日期选择 -->
+                <div class="flex items-center gap-2 text-gray-600 bg-gray-50 p-2 rounded-lg">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="date" id="edit-date" class="bg-transparent border-none outline-none text-sm font-medium w-full">
+                </div>
+                
+                <!-- 标题输入 -->
+                <input type="text" id="edit-title" placeholder="给今天起个标题..." class="text-xl font-bold border-none outline-none placeholder-gray-400 w-full bg-transparent">
+                
+                <!-- 内容输入 -->
+                <textarea id="edit-content" placeholder="记录下此刻的心情与感悟..." class="flex-1 w-full resize-none border-none outline-none text-gray-600 leading-relaxed text-base placeholder-gray-400 bg-transparent"></textarea>
+                
+                <!-- 情绪标签选择 (简单版) -->
+                <div class="flex gap-3 overflow-x-auto no-scrollbar py-2">
+                    <button onclick="app.selectMood('happy')" class="mood-btn px-3 py-1 rounded-full bg-yellow-100 text-yellow-600 text-sm border border-yellow-200">😊 开心</button>
+                    <button onclick="app.selectMood('calm')" class="mood-btn px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-sm border border-blue-200">😌 平静</button>
+                    <button onclick="app.selectMood('sad')" class="mood-btn px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm border border-gray-200">😔 低落</button>
+                    <button onclick="app.selectMood('excited')" class="mood-btn px-3 py-1 rounded-full bg-red-100 text-red-600 text-sm border border-red-200">🤩 兴奋</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置面板模态框 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-white w-11/12 max-w-sm rounded-xl p-6 shadow-2xl fade-in">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">设置</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">数据管理</span>
+                    <button onclick="app.exportData()" class="text-sm text-primary bg-indigo-50 px-3 py-1 rounded-lg">导出JSON</button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">清空所有数据</span>
+                    <button onclick="app.clearAllData()" class="text-sm text-red-500 bg-red-50 px-3 py-1 rounded-lg">清空</button>
+                </div>
+                <div class="pt-4 border-t text-xs text-gray-400 text-center">
+                    每日感悟 v1.0 <br> 数据仅保存在本地
+                </div>
+            </div>
+            <button onclick="app.toggleSettings()" class="mt-6 w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition">关闭</button>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center">
+        <div class="bg-white w-11/12 max-w-xs rounded-xl p-6 text-center shadow-2xl fade-in">
+            <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-3xl mb-3"></i>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">确认删除?</h3>
+            <p class="text-gray-500 text-sm mb-6">这条感悟将被永久删除，无法恢复。</p>
+            <div class="flex gap-3">
+                <button onclick="app.cancelDelete()" class="flex-1 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200">取消</button>
+                <button onclick="app.confirmDelete()" class="flex-1 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入逻辑脚本 -->
+    <script src="app.js"></script>
+</body>
+</html>
